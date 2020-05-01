@@ -1,0 +1,13 @@
+name = "Toolkits"
+uuid = "77590672-9967-4dff-9144-0fe4e61c302a"
+authors = ["Jejulia <Jejulia@users.noreply.github.com>"]
+version = "0.1.0"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
