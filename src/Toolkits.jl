@@ -4,7 +4,7 @@ export @pip, @pipas, changesub, @activate
 
 using Pkg
 
-global sub = :(_)
+const sub = :(_)
 
 function __init__()
     println("Substitution = $sub")
@@ -188,8 +188,15 @@ julia> @pip x α+5
 
 ```
 """
-changesub(x::Symbol) = begin global sub = x; println("Substitution = $sub") end
+changesub(x::Symbol) = begin eval(:(sub = :(x))); println("Substitution = $sub") end
 
+
+"""
+    @activate(env,shared::Bool=true)
+
+Access Pkg.activate, without quoting environment name. Default shared is true.
+
+"""
 macro activate(env,shared::Bool=true)
     env = String(env)
     return quote
@@ -245,6 +252,11 @@ function median(A::Array{T,1}) where {T <: Number}
     iseven(n) ? (return (B[Int(n/2)]+B[Int(n/2+1)])/2) : return B[Int((n+1)/2)]
 end
 median(A::AbstractArray{T,N}) where {T <: Number, N} = median(reshape(A,length(A)))
+
+
+
 minus_pos(x::T,y::S) where{T<:Number,S<:Number} = max(x-y,0)
 relu(x::AbstractArray{T,N}) where {T <: Number, N} = max.(x,0)
+
+
 end
