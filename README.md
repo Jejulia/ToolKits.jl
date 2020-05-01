@@ -1,4 +1,4 @@
-# Toolkits
+# Toolkits.jl
 ## Data maipulate
 `@pip` and `@pipas` enable R's `%>%` and `%<>%` syntax. Arguments are seperated by space. Broadcasting and anonymous functions are supported; however, `@pipas can only assign global variable.
 ## Package management
