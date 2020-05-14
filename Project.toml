@@ -3,6 +3,9 @@ uuid = "77590672-9967-4dff-9144-0fe4e61c302a"
 authors = ["Jejulia <Jejulia@users.noreply.github.com>"]
 version = "0.1.0"
 
+[deps]
+Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
+
 [compat]
 julia = "1"
 

@@ -1,14 +1,17 @@
+__precompile__()
+
+
 module Toolkits
 
 export @pip, @pipas, changesub, @activate
 
-using Pkg
+import Pkg
 
 const sub = :(_)
 
 function __init__()
     println("Substitution = $sub")
-end
+end  # function __init__
 
 """
     @pip(fs...)
@@ -51,11 +54,36 @@ julia> @pip x f(1,z=_)
 julia> @pip y f(_,z=1)
 6.0
 
-julia> @pip -5 abs [1,_] _.^2 _[2] # Broadcast is available
-25
+julia> @pip -5 abs Float64[1.0,_] _.^2 _[2] # Broadcast is available
+25.0
 
-julia> ([1,abs(-5)].^2)[2]
-25
+julia> (Float64[1,abs(-5)].^2)[2]
+25.0
+
+julia> using DataFrames
+
+julia> df = DataFrame(:x=>[1,2,3],:y=>[2,3,4],:z=>[1.1,2.3,2.9])
+3×3 DataFrame
+│ Row │ x     │ y     │ z       │
+│     │ Int64 │ Int64 │ Float64 │
+├─────┼───────┼───────┼─────────┤
+│ 1   │ 1     │ 2     │ 1.1     │
+│ 2   │ 2     │ 3     │ 2.3     │
+│ 3   │ 3     │ 4     │ 2.9     │
+
+julia> @pip df Matrix cor # If the function call is also a type name, parathesis and sub is neccessary.
+ERROR: LoadError: MethodError: Cannot `convert` an object of type Expr to an object of type Symbol
+Closest candidates are:
+  convert(::Type{S}, ::T) where {S, T<:(Union{CategoricalString{R}, CategoricalValue{T,R} where T} where R)} at C:/Users/sciph/.julia/packages/CategoricalArrays/dmrjI/src/value.jl:103     
+  convert(::Type{T}, ::T) where T at essentials.jl:171
+  Symbol(::Any...) at strings/basic.jl:207
+
+julia> @pip df Matrix(_) cor
+3×3 Array{Float64,2}:
+ 1.0       1.0       0.981981
+ 1.0       1.0       0.981981
+ 0.981981  0.981981  1.0
+ 
 ```
 """
 
@@ -197,10 +225,10 @@ changesub(x::Symbol) = begin eval(:(sub = :(x))); println("Substitution = $sub")
 Access Pkg.activate, without quoting environment name. Default shared is true.
 
 """
-macro activate(env,shared::Bool=true)
+macro activate(env="base",shared::Bool=true)
     env = String(env)
     return quote
-        $(Pkg.activate(env,shared=true))
+        $(env == "base" ? Pkg.activate() : Pkg.activate(env,shared=true))
     end
 end
 
