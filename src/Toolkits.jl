@@ -254,18 +254,23 @@ function prime(x,y::Int,bound)
         if x%y == 0
             return false
         else
-            prime(x,y+2,bound)
+            return prime(x,y+2,bound)
         end
     else
         return true
     end
 end
+
 function prime(x::Int)
-    if x%2==0
+    if x == 1
+        return nothing
+    elseif x == 2
+        return true
+    elseif x%2==0
         return false
     else
         bound = round(sqrt(x))
-        prime(x,3,bound)
+        return prime(x,3,bound)
     end
 end
 """
