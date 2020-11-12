@@ -14,6 +14,19 @@ function __init__()
 end  # function __init__
 
 """
+    @activate(env,shared::Bool=true)
+
+Access Pkg.activate, without quoting environment name. Default shared is true.
+
+"""
+macro activate(env = "base", shared::Bool = true)
+    env = String(env)
+    return quote
+        $(env == "base" ? Pkg.activate() : Pkg.activate(env, shared = true))
+    end
+end
+
+"""
     @pip(fs...)
 
 Enable writing function call in sequenced-manner, avoiding tedious amounts of parethesis.
@@ -218,19 +231,6 @@ julia> @pip x α+5
 """
 changesub(x::Symbol) = begin eval(:(sub = :(x))); println("Substitution = $sub") end
 
-
-"""
-    @activate(env,shared::Bool=true)
-
-Access Pkg.activate, without quoting environment name. Default shared is true.
-
-"""
-macro activate(env="base",shared::Bool=true)
-    env = String(env)
-    return quote
-        $(env == "base" ? Pkg.activate() : Pkg.activate(env,shared=true))
-    end
-end
 
 
 """
