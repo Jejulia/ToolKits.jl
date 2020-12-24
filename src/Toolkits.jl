@@ -14,16 +14,23 @@ function __init__()
 end  # function __init__
 
 """
-    @activate(env,shared::Bool=true)
+    @activate(env, shared::Bool=true)
+    @activate()
 
-Access Pkg.activate, without quoting environment name. Default shared is true.
-
+Access `Pkg.activate`, without quoting environment name. Default value of `shared` is true.
+If no arguments are given, it will call `Pkg.activate()` and activate default environment, `@x.x`.
+If / is given, it will activate environment at current path. If current path is a project, it will activate the project environment. 
+If a unquoted argument is given, it will activate an environment in [./.julia/environments](./.julia/environments). If the environment has already existed, it will activate it.
 """
-macro activate(env = "base", shared::Bool = true)
+macro activate(env, shared::Bool = true)
     env = String(env)
     return quote
-        $(env == "base" ? Pkg.activate() : Pkg.activate(env, shared = true))
+        $env == "/" ? Pkg.activate($(esc(pwd()))) : Pkg.activate($env, shared = true)
     end
+end
+
+macro activate()
+    return Pkg.activate()
 end
 
 """
@@ -104,30 +111,30 @@ macro pip(fs...)
     fs = [fs...]
     ans = similar(fs)
     ans[1] = popfirst!(fs)
-    for (i,foo) in enumerate(fs)
+    for (i, foo) in enumerate(fs)
         if typeof(foo) == Symbol    # Handle pure function symbol, e.g. abs
-            ans[i+1] = Expr(:call,fs[i],ans[i])
+            ans[i+1] = Expr(:call, fs[i], ans[i])
         elseif foo.head == :(->)    # Handle anonymous function symbol, e.g. x->x^2
             var = foo.args[1]
             call = foo.args[2].args[2]
-            for (j,arg) in enumerate(call.args)
+            for (j, arg) in enumerate(call.args)
                 arg == var && begin call.args[j] = ans[i]; ans[i+1] = call; break; end 
             end
         else                    
             notsearched = true
-            for (j,arg) in enumerate(fs[i].args)
-                if arg == sub   # Handle variable in function, e.g. f(sub,2)
+            for (j, arg) in enumerate(fs[i].args)
+                if arg == sub   # Handle variable in function, e.g. f(sub, 2)
                     fs[i].args[j] = ans[i]
                     notsearched = false
                     break
-                elseif typeof(arg) == Expr  # Handle variable in an addtion layer of Expr, e.g. [sub,2]
-                    for (k,kwarg) in enumerate(arg.args)
+                elseif typeof(arg) == Expr  # Handle variable in an addtion layer of Expr, e.g. [sub, 2]
+                    for (k, kwarg) in enumerate(arg.args)
                         kwarg == sub && begin fs[i].args[j].args[k] = ans[i]; notsearched = false; break; end
                     end
                     !notsearched && break
                 end
             end
-            notsearched && insert!(fs[i].args,2,ans[i]) # Handle ommited variable
+            notsearched && insert!(fs[i].args, 2, ans[i]) # Handle ommited variable
             ans[i+1] = fs[i]
         end
     end
@@ -174,30 +181,30 @@ macro pipas(fs...)
     fs = [fs...]
     ans = similar(fs)
     ans[1] = popfirst!(fs)
-    for (i,foo) in enumerate(fs)
+    for (i, foo) in enumerate(fs)
         if typeof(foo) == Symbol    # Handle pure function symbol, e.g. abs
-            ans[i+1] = Expr(:call,fs[i],ans[i])
+            ans[i+1] = Expr(:call, fs[i], ans[i])
         elseif foo.head == :(->)    # Handle anonymous function symbol, e.g. x->x^2
             var = foo.args[1]
             call = foo.args[2].args[2]
-            for (j,arg) in enumerate(call.args)
+            for (j, arg) in enumerate(call.args)
                 arg == var && begin call.args[j] = ans[i]; ans[i+1] = call; break; end 
             end
         else                    
             notsearched = true
-            for (j,arg) in enumerate(fs[i].args)
-                if arg == sub   # Handle variable in function, e.g. f(sub,2)
+            for (j, arg) in enumerate(fs[i].args)
+                if arg == sub   # Handle variable in function, e.g. f(sub, 2)
                     fs[i].args[j] = ans[i]
                     notsearched = false
                     break
-                elseif typeof(arg) == Expr  # Handle variable in an addtion layer of Expr, e.g. [sub,2]
-                    for (k,kwarg) in enumerate(arg.args)
+                elseif typeof(arg) == Expr  # Handle variable in an addtion layer of Expr, e.g. [sub, 2]
+                    for (k, kwarg) in enumerate(arg.args)
                         kwarg == sub && begin fs[i].args[j].args[k] = ans[i]; notsearched = false; break; end
                     end
                     !notsearched && break
                 end
             end
-            notsearched && insert!(fs[i].args,2,ans[i]) # Handle ommited variable
+            notsearched && insert!(fs[i].args, 2, ans[i]) # Handle ommited variable
             ans[i+1] = fs[i]
         end
     end
@@ -270,7 +277,7 @@ function prime(x::Int)
         return false
     else
         bound = round(sqrt(x))
-        return prime(x,3,bound)
+        return prime(x, 3, bound)
     end
 end
 """
@@ -279,17 +286,18 @@ end
 
 Calculate median
 """
-function median(A::Array{T,1}) where {T <: Number}
+function median(A::Array{<: Number, 1})
     B = sort(A)
     n = length(B)
-    iseven(n) ? (return (B[Int(n/2)]+B[Int(n/2+1)])/2) : return B[Int((n+1)/2)]
+    m = cld(n, 2)
+    iseven(n) ? (return sum(B[m:m + 1])/2) : return B[m]
 end
-median(A::AbstractArray{T,N}) where {T <: Number, N} = median(reshape(A,length(A)))
+median(A::AbstractArray{<: Number, N}) where N = median(reshape(A, length(A)))
 
 
 
-minus_pos(x::T,y::S) where{T<:Number,S<:Number} = max(x-y,0)
-relu(x::AbstractArray{T,N}) where {T <: Number, N} = max.(x,0)
+minus_pos(x::Number, y::Number) = max(x - y, 0)
+relu(x::AbstractArray{<: Number, N}) where N = max.(x, 0)
 
 
 end
